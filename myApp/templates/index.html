@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>| Ajax-Django |</title>
+    <link rel="stylesheet" href="{% static 'CSS/style.css' %}">
+    <script src="{% static 'jQuery/jQuery.js' %}"></script>
+    <style>
+        .innerList{
+            list-style-type: disc;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-center">Ajax with Django</h1>
+
+        <div class="container my-5">
+            <ol id="list" class="d-none"><span class="h4">Users Profile</span></ol>
+            <button id="load_btn" class="btn btn-primary">Load Data</button>
+        </div>
+
+
+        <div class="container">
+            <form id="form" class="col-sm-4 border border-2 border-light rounded border-dark p-5 shadow-lg"> {% csrf_token %}
+                <h3 class="text-center">Register any user</h3>
+                <input type="text" name="name" id="name" placeholder="Enter your name" class="form-control text-center">
+                <input type="number" name="age" id="age" placeholder="Enter your age" class="form-control mt-2 text-center">
+                <input type="number" name="phno" id="phno" placeholder="Enter your phone number" class="form-control mt-2 text-center">
+                <input id="submitButton" type="submit" class="btn my-3 m-auto d-block btn-success" value="Submit"/>
+            </form>
+        </div>
+
+</body>
+</html>
+
+<script>
+    $(document).ready(()=>{
+        $('#load_btn').click(()=>{
+            setTimeout(() => {
+            $.ajax({
+                type: 'GET',
+                url: "{% url 'getProfile' %}",
+                success: (response)=>{
+                    let list_item = ``;
+                    for (item of response.profiles){
+                        list_item += `<li><span class="fs-5">${item.name}</span>
+                                        <ul class="innerList">
+                                            <li>Age: ${item.age} Years old</li>
+                                            <li>Phone: ${item.phno}</li>
+                                        </ul>
+                                      </li>`;
+                    }
+                    $('#list').fadeIn(3000);
+                    $('#list').removeClass('d-none');
+                    $('#list').append(list_item);
+                    $('#load_btn').hide(2000);
+                },
+                error: (response)=>{
+                    alert('An Error Occurred');
+                }
+            });
+        }, 500);
+        });
+
+        $('#form').submit(function(e){
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'Create' %}",
+                data: {
+                    name: $('#name').val(),
+                    age: $('#age').val(),
+                    phno: $('#phno').val(),
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                
+                success: function(response){
+                    $('#name').val('');
+                    $('#age').val('');
+                    $('#phno').val('');
+                    alert(response);
+                    refreshData();
+                }
+            });
+        });
+
+
+    });
+
+    function refreshData(){
+        $.ajax({
+                type: 'GET',
+                url: "{% url 'getProfile' %}",
+                success: (response)=>{
+                    $('#list').empty();
+                    let list_item = ``;
+                    for (item of response.profiles){
+                        list_item += `<li><span class="fs-5">${item.name}</span>
+                                        <ul class="innerList">
+                                            <li>Age: ${item.age} Years old</li>
+                                            <li>Phone: ${item.phno}</li>
+                                        </ul>
+                                      </li>`;
+                    }
+                    $('#list').fadeIn(3000);
+                    $('#list').removeClass('d-none');
+                    $('#list').append(list_item);
+                    $('#load_btn').hide(2000);
+                },
+                error: (response)=>{
+                    alert('An Error Occurred');
+                }
+            });
+    }
+
+</script>
